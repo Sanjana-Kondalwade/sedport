@@ -1,8 +1,19 @@
 diff --git a/sed/execute.c b/sed/execute.c
-index 485bca7..1cf9a47 100644
+index 485bca7..5535c82 100644
 --- a/sed/execute.c
 +++ b/sed/execute.c
-@@ -592,6 +592,10 @@ open_next_file (const char *name, struct input *input)
+@@ -37,6 +37,10 @@
+ #include "progname.h"
+ #include "xalloc.h"
+ 
++#if defined(__MVS__)
++#include "zos-io.h"
++#endif
++
+ /* The number of extra bytes that must be allocated/usable, beyond
+    the declared "end" of each line buffer that may be passed to
+    match_regex.  This is imposed by its use of dfaexec.  */
+@@ -592,6 +596,10 @@ open_next_file (const char *name, struct input *input)
  
        input_fd = fileno (input->fp);
        fstat (input_fd, &input->st);
@@ -13,7 +24,7 @@ index 485bca7..1cf9a47 100644
        if (!S_ISREG (input->st.st_mode))
          panic (_("couldn't edit %s: not a regular file"), input->in_file_name);
  
-@@ -621,6 +625,9 @@ open_next_file (const char *name, struct input *input)
+@@ -621,6 +629,9 @@ open_next_file (const char *name, struct input *input)
        output_file.fp = ck_mkstemp (&input->out_file_name, tmpdir, "sed",
                                     write_mode);
        output_file.missing_newline = false;
@@ -23,11 +34,11 @@ index 485bca7..1cf9a47 100644
        free (tmpdir);
  
        if (reset_fscreatecon)
-@@ -658,6 +665,7 @@ closedown (struct input *input)
+@@ -658,6 +669,7 @@ closedown (struct input *input)
        target_name = input->in_file_name;
        input_fd = fileno (input->fp);
        output_fd = fileno (output_file.fp);
-+      
++
  #ifdef HAVE_FCHOWN
        /* Try to set both UID and GID, but if that fails,
           try to set only the GID.  Ignore failure.  */

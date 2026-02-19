@@ -1,0 +1,16 @@
+--- sed-4.9/lib/xmalloc.c	2022-10-16 13:37:16 -0400
++++ sed-4.9/lib/xmalloc.c	2026-02-16 01:04:28 -0500
+@@ -81,8 +81,11 @@
+ void *
+ xreallocarray (void *p, size_t n, size_t s)
+ {
+-  void *r = reallocarray (p, n, s);
+-  if (!r && (!p || (n && s)))
++  size_t n1 = n;
++  if (!p && !n1)
++    n1 = 1;
++  void *r = reallocarray (p, n1, s);
++  if (!r && (!p || (n1 && s)))
+     xalloc_die ();
+   return r;
+ }
