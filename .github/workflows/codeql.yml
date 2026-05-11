@@ -27,39 +27,57 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Clone sed source from zopencommunity
+        run: |
+          # Clone the sedport repository
+          git clone https://github.com/zopencommunity/sedport.git sed-temp
+          cd sed-temp
+
+          # Find and extract the sed source tarball
+          SED_DIR=$(ls -d sed-* 2>/dev/null | head -n 1)
+
+          if [ -n "$SED_DIR" ]; then
+            # Move source files to root of workspace
+            mv "$SED_DIR"/* ../
+            cd ..
+            rm -rf sed-temp
+          else
+            echo "Error: No sed source directory found"
+            exit 1
+          fi
+
+      - name: Apply patches
+        run: |
+          if [ -d "stable-patches" ] && [ "$(ls -A stable-patches/*.patch 2>/dev/null)" ]; then
+            for patch in stable-patches/*.patch; do
+              if [ -f "$patch" ]; then
+                echo "Applying patch: $patch"
+                patch -p1 < "$patch" || true
+              fi
+            done
+          fi
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
-      - name: Clone sed source from zopencommunity
+      - name: Build sed
         run: |
-          git clone https://github.com/zopencommunity/sedport.git sed-source
-          cd sed-source
-
-          SED_DIR=$(ls -d sed-* 2>/dev/null | head -n 1)
-
-          if [ -n "$SED_DIR" ]; then
-            mv "$SED_DIR"/* .
-            rm -rf "$SED_DIR"
+          # Configure and build sed
+          if [ -f "configure" ]; then
+            ./configure
+            make
+          elif [ -f "bootstrap" ]; then
+            ./bootstrap
+            ./configure
+            make
+          else
+            echo "No configure script found, attempting autobuild"
           fi
 
-      - name: Apply patches
-        run: |
-          if [ -d "stable-patches" ] && [ "$(ls -A stable-patches/*.patch 2>/dev/null)" ]; then
-            cd sed-source
-
-            for patch in ../stable-patches/*.patch; do
-              if [ -f "$patch" ]; then
-                echo "Applying patch: $patch"
-                patch -p1 < "$patch" || true
-              fi
-            done
-
-            cd ..
-          fi
-
+        
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
