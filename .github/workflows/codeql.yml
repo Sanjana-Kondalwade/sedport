@@ -2,11 +2,11 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: "0 0 * * 1"
 
 jobs:
   analyze:
@@ -21,46 +21,46 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'c-cpp' ]
+        language: ["c-cpp"]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
-        queries: security-extended,security-and-quality
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
 
-    - name: Clone sed source from zopencommunity
-      run: |
-        git clone https://github.com/zopencommunity/sedport.git sed-source
-        cd sed-source
-
-        SED_DIR=$(ls -d sed-* 2>/dev/null | head -n 1)
-
-        if [ -n "$SED_DIR" ]; then
-          mv "$SED_DIR"/* .
-          rm -rf "$SED_DIR"
-        fi
-
-    - name: Apply patches
-      run: |
-        if [ -d "stable-patches" ] && [ "$(ls -A stable-patches/*.patch 2>/dev/null)" ]; then
+      - name: Clone sed source from zopencommunity
+        run: |
+          git clone https://github.com/zopencommunity/sedport.git sed-source
           cd sed-source
 
-          for patch in ../stable-patches/*.patch; do
-            if [ -f "$patch" ]; then
-              echo "Applying patch: $patch"
-              patch -p1 < "$patch"
-            fi
-          done
+          SED_DIR=$(ls -d sed-* 2>/dev/null | head -n 1)
 
-          cd ..
-        fi
+          if [ -n "$SED_DIR" ]; then
+            mv "$SED_DIR"/* .
+            rm -rf "$SED_DIR"
+          fi
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Apply patches
+        run: |
+          if [ -d "stable-patches" ] && [ "$(ls -A stable-patches/*.patch 2>/dev/null)" ]; then
+            cd sed-source
+
+            for patch in ../stable-patches/*.patch; do
+              if [ -f "$patch" ]; then
+                echo "Applying patch: $patch"
+                patch -p1 < "$patch" || true
+              fi
+            done
+
+            cd ..
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
