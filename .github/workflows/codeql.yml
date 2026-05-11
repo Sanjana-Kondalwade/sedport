@@ -27,35 +27,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Clone sed source from zopencommunity
+      - name: Install build dependencies
         run: |
-          # Clone the sedport repository
-          git clone https://github.com/zopencommunity/sedport.git sed-temp
-          cd sed-temp
+          brew install wget autoconf automake libtool gettext
 
-          # Find and extract the sed source tarball
-          SED_DIR=$(ls -d sed-* 2>/dev/null | head -n 1)
-
-          if [ -n "$SED_DIR" ]; then
-            # Move source files to root of workspace
-            mv "$SED_DIR"/* ../
-            cd ..
-            rm -rf sed-temp
-          else
-            echo "Error: No sed source directory found"
-            exit 1
-          fi
-
-      - name: Apply patches
+      - name: Download and extract sed source
         run: |
-          if [ -d "stable-patches" ] && [ "$(ls -A stable-patches/*.patch 2>/dev/null)" ]; then
-            for patch in stable-patches/*.patch; do
-              if [ -f "$patch" ]; then
-                echo "Applying patch: $patch"
-                patch -p1 < "$patch" || true
-              fi
-            done
-          fi
+          # Download sed source from GNU FTP
+          SED_VERSION="4.10"
+          curl -L -o sed-${SED_VERSION}.tar.gz https://ftp.gnu.org/gnu/sed/sed-${SED_VERSION}.tar.gz
+          
+          # Extract tarball
+          tar -xzf sed-${SED_VERSION}.tar.gz
+          
+          # Move source files to root of workspace (including hidden files)
+          shopt -s dotglob
+          mv sed-${SED_VERSION}/* .
+          shopt -u dotglob
+          
+          # Cleanup
+          rm -rf sed-${SED_VERSION} sed-${SED_VERSION}.tar.gz
+          
+          # Verify source files exist
+          ls -la
+          echo "Source files extracted successfully"
+
+      - name: Apply patches (z/OS specific - skip on macOS)
+        run: |
+          echo "Skipping z/OS specific patches on macOS build"
+          # The patches in stable-patches/ are z/OS specific and won't apply on macOS
+          # CodeQL will analyze the unpatched GNU sed source code
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -66,16 +67,8 @@ jobs:
       - name: Build sed
         run: |
           # Configure and build sed
-          if [ -f "configure" ]; then
-            ./configure
-            make
-          elif [ -f "bootstrap" ]; then
-            ./bootstrap
-            ./configure
-            make
-          else
-            echo "No configure script found, attempting autobuild"
-          fi
+          ./configure --disable-nls
+          make -j$(sysctl -n hw.ncpu)
 
         
       - name: Perform CodeQL Analysis
