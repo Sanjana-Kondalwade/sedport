@@ -3,14 +3,16 @@ name: "CodeQL"
 on:
   push:
     branches: ["main"]
+
   pull_request:
     branches: ["main"]
+
   schedule:
     - cron: "0 0 * * 1"
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze (${{ matrix.language }})
     runs-on: macos-latest
 
     permissions:
@@ -27,48 +29,51 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
-        run: |
-          brew install wget autoconf automake libtool gettext
-
-      - name: Setup zopen framework
-        run: |
-          # Download and extract zopen meta package
-          curl -o meta-main.20260508_024412.zos.pax.Z -L https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
-          pax -rf meta-main.20260508_024412.zos.pax.Z
-          cd meta-main
-          . ./.env
-          zopen build -g
-          
-          # Verify zopen framework setup
-          echo "zopen framework setup completed successfully"
-
-      - name: Apply patches (z/OS specific - skip on macOS)
-        run: |
-          echo "Skipping z/OS specific patches on macOS build"
-          # The patches in stable-patches/ are z/OS specific and won't apply on macOS
-          # CodeQL will analyze the unpatched GNU sed source code
-
+      # Initialize CodeQL BEFORE build
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
-      - name: Build sed with zopen
+      - name: Install build dependencies
         run: |
-          # Navigate to meta-main and source environment
-          cd meta-main
-          . ./.env
-          
-          # Build using zopen framework (already done in setup, but ensuring it's complete)
-          zopen build -g
-          
-          # Verify build artifacts
-          echo "Build completed with zopen framework"
+          brew update
+          brew install wget autoconf automake libtool gettext
 
-        
+      - name: Download zopen metaport
+        run: |
+          curl -L \
+            -o meta-main.zos.pax.Z \
+            https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
+
+      - name: Extract zopen metaport
+        run: |
+          gunzip meta-main.zos.pax.Z || true
+
+          if [ -f meta-main.zos.pax ]; then
+            pax -rf meta-main.zos.pax
+          else
+            pax -rf meta-main.zos.pax.Z
+          fi
+
+      - name: Setup zopen environment and build
+        run: |
+          cd meta-main
+
+          # Load zopen environment
+          . ./.env
+
+          # Build GNU sed with zopen patches/framework
+          zopen build -g
+
+      - name: Verify build artifacts
+        run: |
+          echo "Checking generated files..."
+
+          find meta-main -type f | head -50
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:${{ matrix.language }}"
