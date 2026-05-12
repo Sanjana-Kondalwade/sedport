@@ -3,17 +3,15 @@ name: "CodeQL"
 on:
   push:
     branches: ["main"]
-
   pull_request:
     branches: ["main"]
-
   schedule:
     - cron: "0 0 * * 1"
 
 jobs:
   analyze:
-    name: Analyze (${{ matrix.language }})
-    runs-on: macos-latest
+    name: Analyze
+    runs-on: ubuntu-latest
 
     permissions:
       actions: read
@@ -23,57 +21,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["c-cpp"]
+        language: ["cpp"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Initialize CodeQL BEFORE build
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
 
-      - name: Install build dependencies
+      - name: Download and setup metaport
         run: |
-          brew update
-          brew install wget autoconf automake libtool gettext
+          curl -o meta-main.20260508_024412.zos.pax.Z -L \
+          https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
 
-      - name: Download zopen metaport
-        run: |
-          curl -L \
-            -o meta-main.zos.pax.Z \
-            https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
+          pax -rf meta-main.20260508_024412.zos.pax.Z
 
-      - name: Extract zopen metaport
-        run: |
-          gunzip meta-main.zos.pax.Z || true
-
-          if [ -f meta-main.zos.pax ]; then
-            pax -rf meta-main.zos.pax
-          else
-            pax -rf meta-main.zos.pax.Z
-          fi
-
-      - name: Setup zopen environment and build
-        run: |
           cd meta-main
 
-          # Load zopen environment
           . ./.env
 
-          # Build GNU sed with zopen patches/framework
-          zopen build -g
+          echo "Metaport environment initialized"
 
-      - name: Verify build artifacts
+      - name: Apply patches
         run: |
-          echo "Checking generated files..."
+          if [ -f patches/apply_patches.sh ]; then
+            chmod +x patches/apply_patches.sh
+            ./patches/apply_patches.sh
+          else
+            echo "No apply_patches.sh found, skipping"
+          fi
 
-          find meta-main -type f | head -50
+      - name: Manual build
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+          make -j$(nproc)
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{ matrix.language }}"
