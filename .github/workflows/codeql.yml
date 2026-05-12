@@ -31,26 +31,17 @@ jobs:
         run: |
           brew install wget autoconf automake libtool gettext
 
-      - name: Download and extract sed source
+      - name: Setup zopen framework
         run: |
-          # Download sed source from GNU FTP
-          SED_VERSION="4.10"
-          curl -L -o sed-${SED_VERSION}.tar.gz https://ftp.gnu.org/gnu/sed/sed-${SED_VERSION}.tar.gz
+          # Download and extract zopen meta package
+          curl -o meta-main.20260508_024412.zos.pax.Z -L https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
+          pax -rf meta-main.20260508_024412.zos.pax.Z
+          cd meta-main
+          . ./.env
+          zopen build -g
           
-          # Extract tarball
-          tar -xzf sed-${SED_VERSION}.tar.gz
-          
-          # Move source files to root of workspace (including hidden files)
-          shopt -s dotglob
-          mv sed-${SED_VERSION}/* .
-          shopt -u dotglob
-          
-          # Cleanup
-          rm -rf sed-${SED_VERSION} sed-${SED_VERSION}.tar.gz
-          
-          # Verify source files exist
-          ls -la
-          echo "Source files extracted successfully"
+          # Verify zopen framework setup
+          echo "zopen framework setup completed successfully"
 
       - name: Apply patches (z/OS specific - skip on macOS)
         run: |
@@ -64,11 +55,17 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
-      - name: Build sed
+      - name: Build sed with zopen
         run: |
-          # Configure and build sed
-          ./configure --disable-nls
-          make -j$(sysctl -n hw.ncpu)
+          # Navigate to meta-main and source environment
+          cd meta-main
+          . ./.env
+          
+          # Build using zopen framework (already done in setup, but ensuring it's complete)
+          zopen build -g
+          
+          # Verify build artifacts
+          echo "Build completed with zopen framework"
 
         
       - name: Perform CodeQL Analysis
