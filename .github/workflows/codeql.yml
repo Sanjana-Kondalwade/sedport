@@ -34,35 +34,17 @@ jobs:
 
       - name: Download and setup metaport
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pax
-
-          sudo apt-get install -y ncompress pax
-
-          curl -L -o meta-main.20260508_024412.zos.pax.Z \
+          curl -o meta-main.20260508_024412.zos.pax.Z -L \
           https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
 
-          uncompress meta-main.20260508_024412.zos.pax.Z
-
-          pax -rf meta-main.20260508_024412.zos.pax
+          pax -rf meta-main.20260508_024412.zos.pax.Z
 
           cd meta-main
 
-          source ./.env || true
+          . ./.env
 
           echo "Metaport environment initialized"
 
-      - name: Apply patches
-        run: |
-          if [ -f patches/apply_patches.sh ]; then
-            chmod +x patches/apply_patches.sh
-            ./patches/apply_patches.sh
-          else
-            echo "No apply_patches.sh found, skipping"
-          fi
-
-      # - name: Autobuild
-      #   uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
