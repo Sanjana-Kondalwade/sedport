@@ -61,12 +61,8 @@ jobs:
             echo "No apply_patches.sh found, skipping"
           fi
 
-      - name: Manual build
-        run: |
-          mkdir -p build
-          cd build
-          cmake ..
-          make -j$(nproc)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
