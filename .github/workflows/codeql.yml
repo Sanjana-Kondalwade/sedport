@@ -37,10 +37,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pax
 
+          sudo apt-get install -y ncompress pax
+
           curl -L -o meta-main.20260508_024412.zos.pax.Z \
           https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
 
-          pax -r -Z -f meta-main.20260508_024412.zos.pax.Z
+          uncompress meta-main.20260508_024412.zos.pax.Z
+
+          pax -rf meta-main.20260508_024412.zos.pax
 
           cd meta-main
 
