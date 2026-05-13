@@ -40,7 +40,7 @@ jobs:
           curl -L -o meta-main.20260508_024412.zos.pax.Z \
           https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
 
-          pax -rZf meta-main.20260508_024412.zos.pax.Z
+          pax -r -Z -f meta-main.20260508_024412.zos.pax.Z
 
           cd meta-main
 
