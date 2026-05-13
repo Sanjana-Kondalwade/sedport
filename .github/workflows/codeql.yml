@@ -34,18 +34,17 @@ jobs:
 
       - name: Download and setup metaport
         run: |
-          # Install pax utility
           sudo apt-get update
           sudo apt-get install -y pax
-          
-          curl -o meta-main.20260508_024412.zos.pax.Z -L \
+
+          curl -L -o meta-main.20260508_024412.zos.pax.Z \
           https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
 
           pax -rZf meta-main.20260508_024412.zos.pax.Z
 
           cd meta-main
 
-          . ./.env
+          cat .env >> $GITHUB_ENV
 
           echo "Metaport environment initialized"
 
