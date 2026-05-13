@@ -48,7 +48,7 @@ jobs:
 
           cd meta-main
 
-          cat .env >> $GITHUB_ENV
+          source ./.env || true
 
           echo "Metaport environment initialized"
 
