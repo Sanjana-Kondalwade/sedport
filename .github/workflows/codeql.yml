@@ -35,7 +35,7 @@ jobs:
       - name: Download and setup metaport
         run: |
           sudo apt-get update
-          sudo apt-get install -y pax ncompress
+          sudo apt-get install -y pax ncompress curl
 
           curl -L -o meta-main.20260508_024412.zos.pax.Z \
           https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
@@ -46,12 +46,16 @@ jobs:
 
           cd meta-main
 
-          source ./.env || true
+          chmod +x .env
 
-          echo "Metaport environment initialized"
+          echo "$PWD/bin" >> $GITHUB_PATH
+
+          echo "Metaport setup completed"
 
       - name: Build with zopen
         run: |
+          cd meta-main
+          source ./.env
           zopen build -g
 
       - name: Perform CodeQL Analysis
