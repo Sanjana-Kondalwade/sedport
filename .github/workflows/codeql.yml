@@ -44,6 +44,8 @@ jobs:
 
           pax -rf meta-main.20260508_024412.zos.pax
 
+          ls -lrt
+
           cd meta-main
 
           chmod +x .env
@@ -54,8 +56,7 @@ jobs:
 
       - name: Build with zopen
         run: |
-          cd meta-main
-          source ./.env
+          ./.env
           zopen build -g
 
       - name: Perform CodeQL Analysis
