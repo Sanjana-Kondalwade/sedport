@@ -56,9 +56,7 @@ jobs:
 
       - name: Build with zopen
         run: |
-          cd meta-main
-          ./.env
-          zopen build -g
+          cd meta-main && ./.env && zopen build -g
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
