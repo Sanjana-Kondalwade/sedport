@@ -48,6 +48,10 @@ jobs:
 
           cd meta-main
 
+          # Convert .env from EBCDIC to ASCII
+          iconv -f IBM-1047 -t ASCII .env > .env.ascii
+          mv .env.ascii .env
+
           chmod +x .env
 
           echo "$PWD/bin" >> $GITHUB_PATH
