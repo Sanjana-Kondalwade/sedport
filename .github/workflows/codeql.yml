@@ -32,35 +32,18 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Download and setup metaport
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pax ncompress curl
+          sudo apt-get install -y build-essential autoconf automake texinfo
 
-          curl -L -o meta-main.20260508_024412.zos.pax.Z \
-          https://github.com/zopencommunity/metaport/releases/download/STABLE_metaport_4269/meta-main.20260508_024412.zos.pax.Z
-
-          uncompress meta-main.20260508_024412.zos.pax.Z
-
-          pax -rf meta-main.20260508_024412.zos.pax
-
-          ls -lrt
-
-          cd meta-main
-
-          # Convert .env from EBCDIC to ASCII
-          iconv -f IBM-1047 -t ASCII .env > .env.ascii
-          mv .env.ascii .env
-
-          chmod +x .env
-
-          echo "$PWD/bin" >> $GITHUB_PATH
-
-          echo "Metaport setup completed"
-
-      - name: Build with zopen
+      - name: Download and build sed
         run: |
-          cd meta-main && source ./.env && zopen build -g
+          curl -L -o sed-4.10.tar.gz https://ftp.gnu.org/gnu/sed/sed-4.10.tar.gz
+          tar -xzf sed-4.10.tar.gz
+          cd sed-4.10
+          ./configure
+          make
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
