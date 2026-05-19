@@ -50,10 +50,10 @@ jobs:
           cd sedport
 
           echo "Metaport setup completed"
-          
+
           ls -lrt
           echo "$PWD"
-          zopen build -g
+          zopen-build -g
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
