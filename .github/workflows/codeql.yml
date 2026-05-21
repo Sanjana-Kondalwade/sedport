@@ -43,6 +43,8 @@ jobs:
           echo "Metaport setup completed"
           
           cd meta
+          git checkout NonZOS_Build_Fix
+          
           export PATH="$PWD/bin:$PATH"
           cd -
           
