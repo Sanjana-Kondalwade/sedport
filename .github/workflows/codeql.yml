@@ -43,18 +43,17 @@ jobs:
           echo "Metaport setup completed"
           
           cd meta
-          git checkout NonZOS_Build_Fix
-          
+  
           export PATH="$PWD/bin:$PATH"
           cd -
           
           git clone https://github.com/zopencommunity/sedport.git
           cd sedport
-
-          git config --global user.email "zosopentools@ibm.com"
-          git config --global user.name "ZOS Open Tools"
+          ls -lrt
+          git config --global user.email "zopenCommunity@ibm.com"
+          git config --global user.name "Zopen Community"
           
           zopen build -g
-
+          ls -lrt
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
