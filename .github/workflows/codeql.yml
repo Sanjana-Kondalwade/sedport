@@ -41,6 +41,8 @@ jobs:
         run: |
           git clone https://github.com/zopencommunity/meta.git
 
+          git checkout Dep_Install_Fix_NonZOS
+
           cd meta
 
           chmod +x .env
