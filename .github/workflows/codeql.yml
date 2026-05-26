@@ -1,10 +1,5 @@
 name: "CodeQL"
 
-permissions:
-  actions: read
-  contents: read
-  security-events: write
-
 on:
   push:
     branches: ["main"]
@@ -12,12 +7,49 @@ on:
     branches: ["main"]
   schedule:
     - cron: "0 0 * * 1"
-  workflow_dispatch:
 
 jobs:
-  codeql-analysis:
-    uses: Sanjana-Kondalwade/meta/.github/workflows/codeql.yml@main
-    with:
-      languages: "c-cpp"
-      build_mode: "none"
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
 
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: c-cpp
+          build-mode: none
+
+      - name: Download and setup metaport
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pax ncompress curl
+
+      - name: Build with zopen
+        run: |
+          git clone https://github.com/zopencommunity/meta.git
+          echo "Metaport setup completed"
+          
+          cd meta
+  
+          export PATH="$PWD/bin:$PATH"
+          cd -
+          
+          git clone https://github.com/zopencommunity/sedport.git
+          cd sedport
+          ls -lrt
+          git config --global user.email "zopenCommunity@ibm.com"
+          git config --global user.name "Zopen Community"
+          
+          zopen build -g
+          ls -lrt
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
