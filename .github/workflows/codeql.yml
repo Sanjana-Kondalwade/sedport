@@ -27,3 +27,4 @@ jobs:
     with:
       languages: "c-cpp"
       build-mode: "none"
+
