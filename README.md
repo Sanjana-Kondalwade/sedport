@@ -1,3 +1,5 @@
+[![CodeQL](https://github.com/Sanjana-Kondalwade/sedport/actions/workflows/codeql.yml/badge.svg)](https://github.com/Sanjana-Kondalwade/sedport/actions/workflows/codeql.yml)
+
 [![Automatic version updates](https://github.com/ZOSOpenTools/sedport/actions/workflows/bump.yml/badge.svg)](https://github.com/ZOSOpenTools/sedport/actions/workflows/bump.yml)
 
 # Sed
